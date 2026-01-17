@@ -98,6 +98,7 @@ jobs:
             private_key: \"\${GITHUB_APP_PRIVATE_KEY}\"
             installation_id: \"${{ secrets.APP_INSTALLATION_ID }}\"
             repository: \"vitorpy/atproto-bot\"
+            webhook_secret: \"\${GITHUB_WEBHOOK_SECRET}\"
           EOF
           chmod 600 /var/www/atproto-bot/config.yaml"
 
