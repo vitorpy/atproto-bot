@@ -59,13 +59,12 @@ jobs:
       - name: Deploy nginx configuration
         run: |
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-            deploy/nginx/atproto-bot-webhook \
+            deploy/nginx/atproto-bot-webhook.conf \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/
 
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
-            "sudo cp /tmp/atproto-bot-webhook /etc/nginx/sites-available/ && \
-             sudo ln -sf /etc/nginx/sites-available/atproto-bot-webhook /etc/nginx/sites-enabled/ && \
+            "sudo cp /tmp/atproto-bot-webhook.conf /etc/nginx/conf.d/ && \
              sudo nginx -t && \
              sudo systemctl reload nginx"
 
