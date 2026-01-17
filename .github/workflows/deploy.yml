@@ -43,7 +43,7 @@ jobs:
 
           # Deploy project files
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-            pyproject.toml uv.lock \
+            pyproject.toml uv.lock README.md \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/atproto-bot/
 
       - name: Deploy systemd service file
