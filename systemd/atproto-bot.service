@@ -1,0 +1,25 @@
+[Unit]
+Description=ATproto Bot with LLM Integration
+After=network.target
+
+[Service]
+Type=simple
+User=vitorpy
+Group=http
+WorkingDirectory=/var/www/atproto-bot
+ExecStart=/var/www/atproto-bot/.venv/bin/python -m src.main -c /var/www/atproto-bot/config.yaml
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Python-specific environment
+Environment="PYTHONUNBUFFERED=1"
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+RuntimeDirectory=atproto-bot
+
+[Install]
+WantedBy=multi-user.target

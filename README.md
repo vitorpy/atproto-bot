@@ -184,7 +184,87 @@ src/
 - **LLMHandler**: LangChain integration with structured prompts
 - **Bot**: Orchestrates polling, processing, and rate limiting
 
-## Running as a Service
+## Deployment
+
+The bot is deployed to scherbius.vitorpy.com as a systemd service.
+
+### Automatic Deployment
+
+Deployments happen automatically when code is pushed to the `main` branch:
+
+1. Push to main
+2. GitHub Actions builds and deploys
+3. Service restarts with new code
+
+### Manual Deployment
+
+To manually trigger deployment:
+
+1. Go to GitHub Actions
+2. Select "Deploy ATproto Bot to VPS" workflow
+3. Click "Run workflow"
+
+### Viewing Logs
+
+On scherbius.vitorpy.com:
+
+```bash
+# Follow logs in real-time
+sudo journalctl -u atproto-bot -f
+
+# View recent logs
+sudo journalctl -u atproto-bot -n 100
+
+# View logs since last boot
+sudo journalctl -u atproto-bot -b
+```
+
+### Service Management
+
+```bash
+# Check service status
+sudo systemctl status atproto-bot
+
+# Restart service
+sudo systemctl restart atproto-bot
+
+# Stop service
+sudo systemctl stop atproto-bot
+
+# Start service
+sudo systemctl start atproto-bot
+```
+
+### Database Location
+
+The SQLite database is stored at: `/var/lib/atproto-bot/bot.db`
+
+### Troubleshooting Deployment
+
+**Service won't start:**
+```bash
+# Check logs for errors
+sudo journalctl -u atproto-bot -n 50
+
+# Verify config file exists
+ls -l /var/www/atproto-bot/config.yaml
+
+# Check database permissions
+ls -ld /var/lib/atproto-bot
+```
+
+**Database issues:**
+```bash
+# Verify database exists
+ls -lh /var/lib/atproto-bot/bot.db
+
+# Check database structure
+sqlite3 /var/lib/atproto-bot/bot.db ".tables"
+```
+
+## Running as a Service (Generic)
+
+For other environments, you can run the bot as a service using systemd or Docker.
 
 ### systemd (Linux)
 
