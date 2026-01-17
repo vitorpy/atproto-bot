@@ -96,6 +96,19 @@ class Bot:
         Returns:
             True if command was handled successfully.
         """
+        # Mark as processed IMMEDIATELY to prevent duplicate processing
+        # Extract thread URI (needed for normal mentions, not DMs)
+        thread_uri = mention.root_uri or mention.uri if not mention.uri.startswith("dm://") else mention.uri
+
+        await self.mention_service.mark_processed(
+            mention_uri=mention.uri,
+            author_did=mention.author_did,
+            author_handle=mention.author_handle,
+            mention_text=getattr(mention, 'text', ''),
+            reply_uri="",  # Will be updated after replies are sent
+            thread_uri=thread_uri,
+        )
+
         if command.command_type == CommandType.SELFIMPROVEMENT:
             # Initialize service if not already done
             if self.selfimprovement_service is None:
@@ -143,6 +156,12 @@ class Bot:
                 message = f"❌ Self-improvement failed:\n\n{result_message}"
 
             await self._reply_to_mention(mention, message)
+
+            # Record rate limit event
+            await self.rate_limit_service.record_request(
+                user_did=mention.author_did, mention_uri=mention.uri
+            )
+
             return True
 
         # Unknown command (shouldn't happen due to enum, but be safe)
