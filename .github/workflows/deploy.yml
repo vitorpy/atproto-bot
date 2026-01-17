@@ -56,6 +56,19 @@ jobs:
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
             "sudo cp /tmp/atproto-bot.service /etc/systemd/system/ && sudo systemctl daemon-reload"
 
+      - name: Deploy nginx configuration
+        run: |
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            deploy/nginx/atproto-bot-webhook \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/
+
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "sudo cp /tmp/atproto-bot-webhook /etc/nginx/sites-available/ && \
+             sudo ln -sf /etc/nginx/sites-available/atproto-bot-webhook /etc/nginx/sites-enabled/ && \
+             sudo nginx -t && \
+             sudo systemctl reload nginx"
+
       - name: Generate config.yaml and environment file
         run: |
           # Generate config.yaml
@@ -89,11 +102,12 @@ jobs:
           EOF
           chmod 600 /var/www/atproto-bot/config.yaml"
 
-          # Generate environment file with GitHub App private key
+          # Generate environment file with GitHub App private key and webhook secret
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
             "sudo tee /etc/systemd/system/atproto-bot.env > /dev/null <<'EOF'
           GITHUB_APP_PRIVATE_KEY=${{ secrets.APP_PRIVATE_KEY }}
+          GITHUB_WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
           EOF
           sudo chmod 600 /etc/systemd/system/atproto-bot.env"
 

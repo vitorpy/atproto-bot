@@ -48,6 +48,7 @@ class GitHubConfig(BaseModel):
     private_key: SecretStr = Field(..., description="PEM-formatted private key")
     installation_id: str = Field(..., description="Installation ID for the repository")
     repository: str = Field(default="vitorpy/atproto-bot", description="Repository name (owner/repo)")
+    webhook_secret: SecretStr = Field(..., description="Webhook secret for signature verification")
 
 
 class Config(BaseModel):

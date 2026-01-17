@@ -245,3 +245,51 @@ class GitHubService:
             except Exception as e:
                 logger.error("Failed to list contents: %s", e)
                 raise
+
+    async def post_pr_comment(
+        self,
+        repo: str,
+        pr_number: int,
+        body: str,
+    ) -> dict[str, Any]:
+        """
+        Post comment on a pull request.
+
+        Args:
+            repo: Repository name in format "owner/repo".
+            pr_number: PR number.
+            body: Comment body (markdown supported).
+
+        Returns:
+            Comment data dict.
+
+        Raises:
+            Exception: If comment posting fails.
+        """
+        logger.info("Posting comment on PR #%d in %s", pr_number, repo)
+
+        token = await self._get_installation_token()
+        url = f"{self.GITHUB_API_BASE}/repos/{repo}/issues/{pr_number}/comments"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+
+        payload = {"body": body}
+
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(url, headers=headers, json=payload)
+                response.raise_for_status()
+                comment_data = response.json()
+
+                logger.info("Posted comment on PR #%d: comment_id=%d", pr_number, comment_data["id"])
+                return comment_data
+
+            except httpx.HTTPStatusError as e:
+                logger.error("Failed to post PR comment (HTTP %d): %s", e.response.status_code, e.response.text)
+                raise
+            except Exception as e:
+                logger.error("Failed to post PR comment: %s", e)
+                raise

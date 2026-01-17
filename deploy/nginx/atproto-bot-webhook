@@ -1,0 +1,69 @@
+# Nginx configuration for ATproto Bot webhooks
+# Location: /etc/nginx/sites-available/atproto-bot-webhook
+# Enable with: sudo ln -s /etc/nginx/sites-available/atproto-bot-webhook /etc/nginx/sites-enabled/
+
+# HTTPS server for webhooks
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name webhooks.vitorpy.com;
+
+    # SSL certificates (using wildcard cert)
+    ssl_certificate /etc/letsencrypt/live/vitorpy.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/vitorpy.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+
+    # Logging
+    access_log /var/log/nginx/atproto-bot-webhook-access.log;
+    error_log /var/log/nginx/atproto-bot-webhook-error.log;
+
+    # Webhook endpoint (proxies to port 8080)
+    location /webhooks/github {
+        proxy_pass http://127.0.0.1:8080/webhooks/github;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Fast timeouts (GitHub expects quick response)
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 10s;
+        proxy_read_timeout 10s;
+
+        # No buffering (respond quickly)
+        proxy_buffering off;
+    }
+
+    # Health check endpoint
+    location /health {
+        proxy_pass http://127.0.0.1:8080/health;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+
+        # Very fast timeout for health checks
+        proxy_connect_timeout 2s;
+        proxy_send_timeout 2s;
+        proxy_read_timeout 2s;
+    }
+
+    # Deny all other requests
+    location / {
+        return 404;
+    }
+}
+
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    listen [::]:80;
+    server_name webhooks.vitorpy.com;
+    return 301 https://$server_name$request_uri;
+}

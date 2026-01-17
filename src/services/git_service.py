@@ -240,3 +240,39 @@ class GitService:
             return None
 
         return stdout.strip()
+
+    async def checkout_branch(self, branch_name: str) -> bool:
+        """
+        Checkout existing branch.
+
+        Args:
+            branch_name: Name of the branch to checkout.
+
+        Returns:
+            True if checkout succeeded, False otherwise.
+        """
+        logger.info("Checking out branch '%s'...", branch_name)
+
+        returncode, stdout, stderr = await self._run_git_command("checkout", branch_name)
+
+        if returncode != 0:
+            logger.error("Failed to checkout branch %s: %s", branch_name, stderr)
+            return False
+
+        logger.info("Successfully checked out branch '%s'", branch_name)
+        return True
+
+    async def get_current_commit_sha(self) -> Optional[str]:
+        """
+        Get current commit SHA.
+
+        Returns:
+            Current commit SHA (full), or None on error.
+        """
+        returncode, stdout, stderr = await self._run_git_command("rev-parse", "HEAD")
+
+        if returncode != 0:
+            logger.error("Failed to get current commit SHA: %s", stderr)
+            return None
+
+        return stdout.strip()
