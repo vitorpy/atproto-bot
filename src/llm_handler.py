@@ -81,8 +81,8 @@ class LLMHandler:
                 temperature=self.config.temperature,
                 # Enable prompt caching for cost savings
                 default_headers={"anthropic-beta": "prompt-caching-2024-07-31"},
-                # Enable extended thinking for better reasoning
-                enable_extended_thinking=self.config.extended_thinking,
+                # Note: extended_thinking not currently supported in langchain-anthropic
+                # Will be added when LangChain supports it
             )
         elif self.config.provider == "openai":
             from langchain_openai import ChatOpenAI

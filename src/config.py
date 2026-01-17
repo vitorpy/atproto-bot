@@ -24,9 +24,6 @@ class LLMConfig(BaseModel):
     model: str = "claude-sonnet-4-20250514"
     max_tokens: int = Field(default=1024, ge=1, le=4096)
     temperature: float = Field(default=0.7, ge=0.0, le=1.0)
-    extended_thinking: bool = Field(
-        default=True, description="Enable extended thinking for better reasoning (Anthropic only)"
-    )
 
 
 class BotConfig(BaseModel):
