@@ -166,6 +166,167 @@ You: @mybot.bsky.social who seems to be winning this argument?
 Bot: [Analysis of the debate based on thread context]
 ```
 
+## Self-Improvement Feature
+
+The bot can autonomously improve its own codebase using the `/selfimprovement` slash command.
+
+### Overview
+
+When you send `/selfimprovement [PROMPT]`, the bot will:
+1. Analyze the codebase using Claude
+2. Generate code changes based on your prompt
+3. Create a new Git branch
+4. Commit the changes
+5. Push to GitHub
+6. Create a pull request
+7. Reply with the PR link
+
+**Example:**
+```
+You: @mybot /selfimprovement Add better error handling to mention processing
+Bot: Starting self-improvement process... This may take a few minutes. I'll reply when done.
+Bot: ✅ Self-improvement complete!
+     Pull request created: https://github.com/vitorpy/atproto-bot/pull/42
+     Review and merge when ready.
+```
+
+### GitHub App Setup (Required for /selfimprovement)
+
+The self-improvement feature requires a GitHub App for authentication.
+
+#### 1. Create GitHub App
+
+1. Go to GitHub Settings → Developer settings → [GitHub Apps](https://github.com/settings/apps) → **New GitHub App**
+2. Fill in the details:
+   - **App name:** `atproto-bot-selfimprovement` (or any unique name)
+   - **Homepage URL:** `https://github.com/vitorpy/atproto-bot`
+   - **Webhook:** Uncheck "Active" (not needed)
+3. Set **Repository permissions:**
+   - **Contents:** Read & Write
+   - **Pull Requests:** Read & Write
+4. **Where can this GitHub App be installed?** → "Only on this account"
+5. Click **Create GitHub App**
+
+#### 2. Configure GitHub App
+
+After creation:
+
+1. **Generate Private Key:**
+   - Scroll down to "Private keys"
+   - Click "Generate a private key"
+   - Download the `.pem` file (keep it secure!)
+
+2. **Note the App ID:**
+   - At the top of the page, note your **App ID**
+
+3. **Install the App:**
+   - Click "Install App" in the left sidebar
+   - Select your account
+   - Choose "Only select repositories"
+   - Select `vitorpy/atproto-bot`
+   - Click "Install"
+
+4. **Get Installation ID:**
+   - After installation, you'll be redirected to a URL like:
+     `https://github.com/settings/installations/12345678`
+   - The number at the end (`12345678`) is your **Installation ID**
+
+#### 3. Add GitHub Config
+
+Add the GitHub section to your `config.yaml`:
+
+```yaml
+bluesky:
+  handle: "your-bot.bsky.social"
+  app_password: "xxxx-xxxx-xxxx-xxxx"
+  owner_did: "did:plc:your-did-here"
+
+llm:
+  provider: "anthropic"
+  api_key: "sk-ant-xxxxx"
+  model: "claude-sonnet-4-20250514"
+  max_tokens: 1024
+  temperature: 0.7
+
+bot:
+  poll_interval: 30
+  max_thread_depth: 50
+  rate_limit_per_hour: 20
+  max_post_length: 300
+
+# GitHub App configuration (optional - required for /selfimprovement)
+github:
+  app_id: "123456"
+  private_key: "${GITHUB_APP_PRIVATE_KEY}"  # Environment variable
+  installation_id: "78910"
+  repository: "vitorpy/atproto-bot"
+```
+
+#### 4. Set Environment Variable
+
+Store the private key as an environment variable:
+
+```bash
+# On VPS (production)
+export GITHUB_APP_PRIVATE_KEY=$(cat /path/to/private-key.pem)
+
+# Or add to systemd service file
+Environment="GITHUB_APP_PRIVATE_KEY=-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n-----END RSA PRIVATE KEY-----"
+```
+
+For GitHub Actions deployment, add these secrets to your repository:
+- `GITHUB_APP_ID`
+- `GITHUB_APP_PRIVATE_KEY` (entire PEM content)
+- `GITHUB_APP_INSTALLATION_ID`
+
+### Usage Examples
+
+```
+# Simple feature addition
+@bot /selfimprovement Add logging to all database operations
+
+# Refactoring
+@bot /selfimprovement Refactor config loading to use environment variables
+
+# Bug fixes
+@bot /selfimprovement Fix the rate limiting logic to reset properly
+
+# Testing
+@bot /selfimprovement Add unit tests for the command router
+```
+
+### How It Works
+
+1. **Authorization:** Only the bot owner (configured `owner_did`) can use this command
+2. **Code Analysis:** Claude reads the codebase structure and key files
+3. **Change Generation:** Claude generates minimal, focused changes following existing patterns
+4. **Validation:** Changes are validated for Python syntax and security
+5. **Git Workflow:** Creates a feature branch, commits, and pushes to GitHub
+6. **Pull Request:** Creates a PR with detailed description
+7. **Manual Review:** You review and merge the PR (no auto-merge for safety)
+
+### Safety Features
+
+- **Owner-only:** Only you can trigger self-improvement
+- **No auto-merge:** All changes require manual PR review
+- **Validation:** Code is checked for syntax errors before commit
+- **Audit trail:** All changes are tracked in Git history
+- **Rollback:** Easy to revert via Git if needed
+
+### VPS Setup Notes
+
+If running on a VPS, ensure:
+
+```bash
+# Git is configured
+git config --global user.name "ATproto Bot"
+git config --global user.email "bot@vitorpy.com"
+
+# Repository is in expected location
+cd /var/www/atproto-bot
+git status  # Should show clean working directory
+```
+
 ## Architecture
 
 ```

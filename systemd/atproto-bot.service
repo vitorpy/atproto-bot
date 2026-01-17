@@ -16,6 +16,9 @@ StandardError=journal
 # Python-specific environment
 Environment="PYTHONUNBUFFERED=1"
 
+# Load GitHub App credentials from environment file
+EnvironmentFile=-/etc/systemd/system/atproto-bot.env
+
 # Security hardening
 NoNewPrivileges=true
 PrivateTmp=true

@@ -56,8 +56,9 @@ jobs:
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
             "sudo cp /tmp/atproto-bot.service /etc/systemd/system/ && sudo systemctl daemon-reload"
 
-      - name: Generate config.yaml
+      - name: Generate config.yaml and environment file
         run: |
+          # Generate config.yaml
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
             "cat > /var/www/atproto-bot/config.yaml <<'EOF'
@@ -79,8 +80,22 @@ jobs:
             rate_limit_per_hour: 20
             max_post_length: 300
             database_path: \"/var/lib/atproto-bot/bot.db\"
+
+          github:
+            app_id: \"${{ secrets.APP_ID }}\"
+            private_key: \"\${GITHUB_APP_PRIVATE_KEY}\"
+            installation_id: \"${{ secrets.APP_INSTALLATION_ID }}\"
+            repository: \"vitorpy/atproto-bot\"
           EOF
           chmod 600 /var/www/atproto-bot/config.yaml"
+
+          # Generate environment file with GitHub App private key
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "sudo tee /etc/systemd/system/atproto-bot.env > /dev/null <<'EOF'
+          GITHUB_APP_PRIVATE_KEY=${{ secrets.APP_PRIVATE_KEY }}
+          EOF
+          sudo chmod 600 /etc/systemd/system/atproto-bot.env"
 
       - name: Install dependencies with uv
         run: |

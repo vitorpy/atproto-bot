@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Optional
 
 import yaml
 from pydantic import BaseModel, Field, SecretStr
@@ -41,12 +41,22 @@ class BotConfig(BaseModel):
     cleanup_old_data_days: int = Field(default=30, description="Clean up data older than N days")
 
 
+class GitHubConfig(BaseModel):
+    """GitHub App configuration for self-improvement feature."""
+
+    app_id: str = Field(..., description="GitHub App ID")
+    private_key: SecretStr = Field(..., description="PEM-formatted private key")
+    installation_id: str = Field(..., description="Installation ID for the repository")
+    repository: str = Field(default="vitorpy/atproto-bot", description="Repository name (owner/repo)")
+
+
 class Config(BaseModel):
     """Root configuration model."""
 
     bluesky: BlueskyConfig
     llm: LLMConfig
     bot: BotConfig = BotConfig()
+    github: Optional[GitHubConfig] = None
 
 
 def load_config(config_path: str | Path = "config.yaml") -> Config:
