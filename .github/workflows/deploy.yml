@@ -102,13 +102,12 @@ jobs:
           chmod 600 /var/www/atproto-bot/config.yaml"
 
           # Generate environment file with GitHub App private key and webhook secret
+          # Private key is stored with literal \n to keep it on one line for systemd
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
-            "sudo tee /etc/systemd/system/atproto-bot.env > /dev/null <<'EOF'
-          GITHUB_APP_PRIVATE_KEY=${{ secrets.APP_PRIVATE_KEY }}
-          GITHUB_WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}
-          EOF
-          sudo chmod 600 /etc/systemd/system/atproto-bot.env"
+            "sudo bash -c 'echo \"GITHUB_APP_PRIVATE_KEY=\$(echo \"\${{ secrets.APP_PRIVATE_KEY }}\" | tr \"\n\" \"@\" | sed \"s/@/\\\\\\\\n/g\")\" > /etc/systemd/system/atproto-bot.env' && \
+             echo 'GITHUB_WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }}' | sudo tee -a /etc/systemd/system/atproto-bot.env > /dev/null && \
+             sudo chmod 600 /etc/systemd/system/atproto-bot.env"
 
       - name: Install dependencies with uv
         run: |

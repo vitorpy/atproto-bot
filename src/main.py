@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .bot import Bot
 from .config import load_config
+from .llm_handler import LLMHandler
 from .services import get_db_service, init_db_service
 from .services.code_analysis_service import CodeAnalysisService
 from .services.git_service import GitService
@@ -55,6 +56,7 @@ async def run_webhook_server(args, logger, config) -> None:
         repo_path = Path.cwd()
 
         # Initialize services
+        llm_handler = LLMHandler(config.llm)
         git_service = GitService(repo_path)
         github_service = GitHubService(
             app_id=config.github.app_id,
@@ -62,7 +64,7 @@ async def run_webhook_server(args, logger, config) -> None:
             installation_id=config.github.installation_id,
         )
         code_analysis_service = CodeAnalysisService(
-            llm_config=config.llm,
+            llm=llm_handler.llm,  # Use underlying LLM from LLMHandler
             repo_path=repo_path,
         )
         pr_improvement_service = PRImprovementService(
