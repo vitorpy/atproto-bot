@@ -52,8 +52,8 @@ async def run_webhook_server(args, logger, config) -> None:
             logger.error("GitHub configuration required for webhook server")
             return
 
-        # Get repo path from environment or use current directory
-        repo_path = Path.cwd()
+        # Get repo path - use dedicated git clone for selfimprovement/PR operations
+        repo_path = Path("/var/lib/atproto-bot-repo")
 
         # Initialize services
         llm_handler = LLMHandler(config.llm)

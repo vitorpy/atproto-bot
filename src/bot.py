@@ -39,14 +39,14 @@ class Bot:
         # Self-improvement service (lazy init - only if GitHub configured)
         self.selfimprovement_service: Optional[SelfImprovementService] = None
 
-    def _init_selfimprovement_service(self, repo_path: str = "/var/www/atproto-bot") -> None:
+    def _init_selfimprovement_service(self, repo_path: str = "/var/lib/atproto-bot-repo") -> None:
         """
         Lazy initialization of self-improvement service.
 
         Only initializes if GitHub is configured in config.
 
         Args:
-            repo_path: Path to the repository (default: deployment path).
+            repo_path: Path to the git repository (default: /var/lib/atproto-bot-repo).
         """
         if not self.config.github:
             logger.warning("GitHub not configured, self-improvement service unavailable")
