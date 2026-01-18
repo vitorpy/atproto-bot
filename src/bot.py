@@ -97,17 +97,33 @@ class Bot:
             True if command was handled successfully.
         """
         # Mark as processed IMMEDIATELY to prevent duplicate processing
-        # Extract thread URI (needed for normal mentions, not DMs)
-        thread_uri = mention.root_uri or mention.uri if not mention.uri.startswith("dm://") else mention.uri
+        # For DMs, use dm_service; for mentions, use mention_service
+        if mention.uri.startswith("dm://"):
+            # Extract convo_id and message_id from dm://convo_id/message_id
+            parts = mention.uri.replace("dm://", "").split("/")
+            convo_id = parts[0] if len(parts) > 0 else ""
+            message_id = parts[1] if len(parts) > 1 else mention.cid
 
-        await self.mention_service.mark_processed(
-            mention_uri=mention.uri,
-            author_did=mention.author_did,
-            author_handle=mention.author_handle,
-            mention_text=getattr(mention, 'text', ''),
-            reply_uri="",  # Will be updated after replies are sent
-            thread_uri=thread_uri,
-        )
+            await self.dm_service.mark_processed(
+                convo_id=convo_id,
+                message_id=message_id,
+                sender_did=mention.author_did,
+                sender_handle=mention.author_handle,
+                message_text=getattr(mention, 'text', ''),
+                reply_message_id="",  # Will be updated if needed
+            )
+        else:
+            # Extract thread URI (needed for normal mentions, not DMs)
+            thread_uri = mention.root_uri or mention.uri
+
+            await self.mention_service.mark_processed(
+                mention_uri=mention.uri,
+                author_did=mention.author_did,
+                author_handle=mention.author_handle,
+                mention_text=getattr(mention, 'text', ''),
+                reply_uri="",  # Will be updated after replies are sent
+                thread_uri=thread_uri,
+            )
 
         if command.command_type == CommandType.SELFIMPROVEMENT:
             # Initialize service if not already done
