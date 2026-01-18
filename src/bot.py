@@ -223,10 +223,10 @@ class Bot:
             success: Whether the request succeeded.
             metadata: Metadata dict with branch_name, pr_number, pr_url, error, execution_time_ms.
         """
-        from .services.database import get_db
+        from .services import get_db_service
 
         try:
-            db = get_db()
+            db = get_db_service()
             async with db.session() as session:
                 request = SelfImprovementRequest(
                     conversation_id=conversation_id,
