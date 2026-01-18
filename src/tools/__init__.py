@@ -2,6 +2,7 @@
 
 from .calculator import calculator
 from .log_search import search_logs
+from .systemd_logs import search_systemd_logs
 from .web_search import search_web
 from .wikipedia import search_wikipedia
 
@@ -11,12 +12,14 @@ ALL_TOOLS = [
     calculator,
     search_wikipedia,
     search_logs,
+    search_systemd_logs,
 ]
 
 __all__ = [
     "ALL_TOOLS",
     "calculator",
     "search_logs",
+    "search_systemd_logs",
     "search_web",
     "search_wikipedia",
 ]
